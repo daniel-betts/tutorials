@@ -1,0 +1,171 @@
+TERMINOLOGY (copied from https://docker-curriculum.com/#terminology):
+
+- Images:
+  The blueprints of our application which form the basis of containers. In the demo above, we used the docker pull command to download the busybox image.
+- Containers:
+  Created from Docker images and run the actual application. We create a container using docker run which we did using the busybox image that we downloaded. A list of running containers can be seen using the docker ps command.
+- Docker Daemon:
+  The background service running on the host that manages building, running and distributing Docker containers. The daemon is the process that runs in the operating system to which clients talk to.
+- Docker Client:
+  The command line tool that allows the user to interact with the daemon. More generally, there can be other forms of clients too - such as Kitematic which provide a GUI to the users.
+- Docker Hub:
+  A registry of Docker images. You can think of the registry as a directory of all available Docker images. If required, one can host their own Docker registries and can use them for pulling images.
+- Network:
+  When docker is installed, it creates three networks automatically: 'bridge', 'host', and 'none'.
+  - 'bridge': The network in which containers are run by default.
+  The networks have a TYPE: bridge, host, overlay, mcvlan, none, and null (see: https://docs.docker.com/network/).
+  - bridge: a network that uses a software bridge which allows containers connected to the same bridge network to communicate, while providing isolation from containers which are not connected to that bridge network
+
+
+
+DOCKER IMAGES:
+Images are like a git repository: they can be committed with changes, and have multiple versions. When downloading an image, if no version number is provided docker will download the 'latest' version.
+To download an specific version add a ':'followed by the version number, i.e. 
+    $ docker pull ubuntu:18.04
+Images that have an 'onbuild' version can include multiple ONBUILD triggers that will run when the image (or container ??) is built. So this can remove a lot of boilerplate since the image already comes with with programs installed in the right place (??)
+
+Types of images:
+- Base images: images that have no parent image, usually images with an OS like ubuntu, busybox or debian.
+
+- Child images: images that build on base images and add additional functionality.
+
+- Official images (can be a base or a child image): images that are officially maintained and supported by the folks at Docker, i.e.: python, ubuntu, busybox and hello-world
+
+- User images (can be a base or a child image): images created and shared by users like you and me. Typically, these are formatted as user/image-name.
+
+
+DOCKER COMMANDS:
+
+$ docker pull <imageName>
+Desc:   downloads (updates ??) an image from the Docker Registry with the given name.
+
+
+$ docker run <image>
+Desc:	boots up a container from the image.
+flags:
+  -d (Detached mode)
+    Desc: Detaches our terminal from the container so we close the terminal and the container will keep running.
+  -it (Interactive TTY)
+    Desc: allows us to run as many commands as we like inside our container.
+    to exit type 'exit' and press 'enter'.
+  --name
+    Desc: A name to give to the container when it starts running. This is NOT the name of the image.
+  -P
+    Desc: Publish all exposed ports to random ports
+  -p
+    Desc: Specify a custom port to which the client will forward connections to the container
+    Example: -p 8888:80 the client will forward connections on its port 8888 to the container port 80.
+  --rm
+    Desc: automatically deletes the container once it is exited from.
+
+$ docker run -it <image> bash 
+Desc: runs the image with bash process.
+
+
+$ docker images
+Desc:   list all the images we have in our system
+
+
+$ docker ps
+Desc:   list all the containers that are currently running
+flags:
+  - a
+    Desc: shows the containers that we ran. The remnants of containers even after we exited them.
+  - q
+    Desc: returns only the numeric Id of the containers
+  - f <conditions>
+    Desc: filters the containers by the conditions provided
+Examples:
+  - return only the ids of containers that have status=exited:
+    $ docker run ps -a -q -f status=exited
+
+
+$ docker rm <containerId> (<containerId> ...)
+Desc:   cleans ups the containers passed as arguments. On deletion the container id is echoed back.
+
+
+$ docker container ls
+Desc: Lists the currently running containers
+
+
+$ docker container logs <containerName>
+Desc: Displays the logs of the given container.
+
+
+$ docker container prune
+Desc:   deletes all the containers that have exited. Shows a confirm dialog.
+
+
+$ docker rmi
+Desc: deletes images 
+
+
+$ docker port <containerId or containerName>
+Desc: lists the port mapping. The first port is the port exposed by the container and the second port is the mapping to the host port, through which we can access the container port.
+Example: The container exposes port 80 on the host port 0.0.0.0:32769, then we can hit the container by going to http://localhost:32769.
+
+
+$ docker stop <containerId or containerName>
+Desc: stops a detached container
+
+
+$ docker build
+Desc: Does the heavy lifting of creating a docker image from a Dockerfile.
+flags:
+  -t <tagName>
+    Desc: A tag name to give to your image.
+
+$ docker login
+Desc: Log in to docker.io (docker hub). Requires your username and password.
+
+$ docker push <username/imageName>
+Desc: publish the image to docker hub.
+
+
+$ docker search <queryStr>
+Desc: searches for images with a name containing the queryStr
+
+$docker network ls
+Desc: list the networks created
+
+$docker network inspect <networkName>
+Desc: returns information about the docker network. by default a container will always be running in this network.
+
+$docker networ create <networkName>
+Desc: creates a bridge network by default
+
+DOCKERFILE
+A Dockerfile is a simple text file that contains a list of commands that the Docker client calls while creating an image.
+Usually the Dockerfile starts with a 'FROM' command so we know what is the base image.
+Then we write commands for copying files and installing dependencies in our image.
+Then we expose the ports that our applications will be running on.
+And finally we use the 'CMD' command to run our applications.
+
+DOCKERFILE COMMANDS:
+FROM <baseImage>
+Desc: The files starts with the base image that we will build on top of.
+
+RUN <command, and args>
+Desc: a command to run, like, installing a package.
+
+ADD <fromDir> <toDir>
+Desc: Copies the files from the fromDir into the toDir
+
+WORKDIR <directory>
+Desc: Sets the working directory, so the commands will be run in the context of this directory
+
+EXPOSE <portNumber>
+Desc: A port to expose in our container.
+
+CMD ["programName", "arg1"(, "argN" ??)]
+
+
+DOCKERRUN.AWS.JSON
+This file is an AWS specific file that tells ElasticBeanstalk about the application and docker configuration.
+
+
+DOCKER COMPOSE
+Is a tool for defining and running multi-container Docker applications.
+It provides a configuration file called 'docker-compose.yml that can be used to bring up an application and the suite of services it depends on with just one command. 
+Docs: https://docs.docker.com/compose/compose-file/
+
